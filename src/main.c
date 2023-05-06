@@ -8,6 +8,24 @@
 #include <signal.h>
 #include <unistd.h>
 
+/*
+ * MUST HAVES FOR LIBRARY
+ *
+ * create windows
+ * set colour
+ * set title
+ * set contents
+ * draw window
+ * draw windows
+ * errors when draw space is too small
+ *
+ * IMPLEMENTATION
+ * auto resize
+ * updating content
+ * close one q
+ * resize on SIGWITCH
+ *
+ * */
 
 
 #define TOP_LEFT_CORNER "┌"
@@ -165,7 +183,20 @@ void set_title (window_t* window, const char* title) {
  *
  */
 
-
+/*
+ * create a row*col size buffer
+ * loop over windows
+ * anyhting that is on a left or right ==> buf[i] = 1
+ * anything that is top bot ==> buf[i] = 0
+ * anything that is a corner gets differnet code 2-5
+ *
+ * then just print buffer and terminal should do wrapping on its own
+ *
+ * ocmplexify is n*m best case
+ *
+ *
+ *
+ * */
 
 void draw_windows (size_t num, ...) {
     struct winsize sz;
@@ -173,8 +204,9 @@ void draw_windows (size_t num, ...) {
     va_list windows;
     size_t count = 0;
     va_start(windows, num);
+    window_t* window;
     for (size_t i = 0; i < num; i++) {
-        va_arg(windows, window_t*);
+        window = va_arg(windows, window_t*);
         count++;
     }
     if (count != num) {
@@ -182,7 +214,24 @@ void draw_windows (size_t num, ...) {
         exit(EXIT_FAILURE);
     }
     va_end(windows);
-
+    for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
+        for (size_t col = 0; col <= window->current_terminal_sz.ws_col - 1; col++) {
+            va_start(windows, num);
+            int is_vert = 0;
+            int is_tl = 0;
+            for (size_t i = 0; i < num; i++){
+                window = va_arg(windows, window_t*);
+                if (row == window->dim->top && col == window->dim->left) is_tl = 1;
+                if ((row > window->dim->top && row < window->dim->bot) && (col == window->dim->left || col == window->dim->right)) is_vert = 1; 
+            }
+            if (is_vert) printf(VERTICAL);
+            else if (is_tl) printf(TOP_LEFT_CORNER);
+            else printf(" ");
+        }
+    }
+    va_end(windows);
+}
+    /*
     dim_t* dims[num];
     char* titles[num];
     va_start(windows, num);
@@ -215,12 +264,21 @@ void draw_windows (size_t num, ...) {
             //if (is_in) printf("x");
             //else printf(" ");
         }
-    }
+    }*/
+
+
+    /*
+ * draw windows():
+ *      for row in the terminal
+ *          create a buffer of size of num of cols
+ *          for each window
+ *              write to buffer appropriately
+ *          print buffer
+ * */
 
 
 
 
-}
 
 
 
@@ -263,7 +321,7 @@ void draw_window (window_t* window) {
                 else if (col > window->dim->right) printf(" ");
             }
         }
-        else if (row > window->dim->bot) printf("\n\r");
+        else if (row > window->dim->bot) printf("\n");
     }
     printf("%s\r", RESET_COLOUR);
 }
@@ -279,6 +337,7 @@ int resized;
 void sig_handler (int signo) {
     if (signo == SIGWINCH) {
         resized = 1;
+        system("clear");
     }
 }
 int main () {
@@ -290,11 +349,16 @@ int main () {
     struct winsize sz;
     ioctl(0, TIOCGWINSZ, &sz);
 
-    window_t* window = create_window(2, sz.ws_row - 50, 1, sz.ws_col - 10);
+    window_t* window = create_window(2, (size_t) sz.ws_row / 2, 1, (size_t) sz.ws_col / 2);
     set_title(window, "Testing");
     set_colour(window, BRIGHT_GREEN);
     draw_window(window);
-
+    
+    window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 1, (size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
+    //draw_window(window1);
+    draw_windows(2, window, window1);
+    while(1);
+    /*
     while (1) {
         if (resized) {
             system("clear");
@@ -306,5 +370,6 @@ int main () {
             resized = 0;
         }
     }
+    */
     return 0;
 }
