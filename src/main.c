@@ -17,9 +17,50 @@
 #define HORIZONTAL "─"
 #define VERTICAL "│"
 
+
+
+
 #define CYAN "\e[36;1m"
 #define RED "\e[36;31m"
 #define RESET_COLOUR "\e[0m"
+
+#define BRIGHT_BLACK "\e[30;1m"
+#define BRIGHT_RED "\e[31;1m"
+#define BRIGHT_GREEN "\e[32;1m"
+/*
+Bright Yellow: "\e[33;1m"
+Bright Blue: "\e[34;1m"
+Bright Magenta: "\e[35;1m"
+Bright Cyan: "\e[36;1m"
+Bright White: "\e[37;1m"
+Reset: "\e[0m"
+*/
+
+int update_happened = 0;
+
+void terminal_start_config () {
+    system("tput smcup");
+    printf("\e[?25l");
+    printf("\e[?30l");
+    printf("\e[?30h");
+    system("/bin/stty raw");
+}
+
+void terminal_stop_config () {
+    system("/bin/stty cooked");
+    printf("\e[?25h");
+    system("tput rmcup");
+
+}
+void stop (int exit_code) {
+    system("clear");
+    terminal_stop_config();
+    exit(exit_code);
+}
+
+
+
+
 /*
  * IDEAS
  *
@@ -58,9 +99,11 @@ struct window_t {
     char** contents;
     dim_t* dim;
     char* colour;
-    struct winsize terminal_sz;
+    struct winsize current_terminal_sz;
+    struct winsize original_terminal_sz;
 };
 typedef struct window_t window_t;
+
 
 
 window_t* create_window (size_t top, size_t bot, size_t left,
@@ -74,19 +117,21 @@ window_t* create_window (size_t top, size_t bot, size_t left,
     window_t* window = malloc(sizeof(window_t));
     window->dim = dim;
 
-    ioctl(0, TIOCGWINSZ, &window->terminal_sz);
+    ioctl(0, TIOCGWINSZ, &window->current_terminal_sz);
+    ioctl(0, TIOCGWINSZ, &window->original_terminal_sz);
     return window;
 }
 
-void resize_window (window_t* window, size_t top, size_t bot,
-                        size_t left, size_t right) {
-    window->dim->top = top;
-    window->dim->bot = bot;
-    window->dim->left = left;
-    window->dim->right = right;
+void resize_window (window_t* window, size_t _top, size_t _bot,
+                        size_t _left, size_t _right) {
+    window->dim->top = _top;
+    window->dim->bot = _bot;
+    window->dim->left = _left;
+    window->dim->right = _right;
 }
 
 void set_colour (window_t* window, const char* colour) {
+    /*
     if (strcmp(colour, "Cyan") == 0) {
         window->colour = malloc(strlen(CYAN) + 1);
         strncpy(window->colour, CYAN, strlen(CYAN));
@@ -97,6 +142,10 @@ void set_colour (window_t* window, const char* colour) {
         strncpy(window->colour, RED, strlen(RED));
         window->colour[strlen(RED)] = '\0';
     }
+    */
+    window->colour = malloc(strlen(colour) + 1);
+    strncpy(window->colour, colour, strlen(colour));
+    window->colour[strlen(colour)] = '\0';
 }
 
 void set_title (window_t* window, const char* title) {
@@ -177,13 +226,13 @@ void draw_windows (size_t num, ...) {
 
 void draw_window (window_t* window) {
     if (window->colour) printf("%s", window->colour);
-    for (size_t row = 0; row <= window->terminal_sz.ws_row; row++) {
+    for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
         if (row < window->dim->top) {
-            for (size_t col = 0; col < window->terminal_sz.ws_col; col++)
+            for (size_t col = 0; col < window->current_terminal_sz.ws_col; col++)
                 printf(" ");
         }
         else if (row == window->dim->top) {
-            for (size_t col = 0; col <= window->terminal_sz.ws_col; col++) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) {
                     printf("%s", TOP_LEFT_CORNER);
@@ -196,7 +245,7 @@ void draw_window (window_t* window) {
             }
         }
         else if (row > window->dim->top && row < window->dim->bot) {
-            for (size_t col = 0; col <= window->terminal_sz.ws_col; col++) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) printf("%s", VERTICAL);
                 else if (col > window->dim->left && col < window->dim->right - 1) printf(" ");
@@ -205,7 +254,7 @@ void draw_window (window_t* window) {
             }
         }
         else if (row == window->dim->bot) {
-            for (size_t col = 0; col <= window->terminal_sz.ws_col; col++) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) printf("%s", BOTTOM_LEFT_CORNER);
                 else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
@@ -218,106 +267,43 @@ void draw_window (window_t* window) {
     printf("%s\r", RESET_COLOUR);
 }
 
-
-void draw_border (const char* title, const size_t top, const size_t bot,
-                  const size_t left, const size_t right) {
-    size_t width = right - left;
-    size_t height = bot - top;
-    size_t title_len = strlen(title);
-
-    for (size_t i = 0; i < top; i++) printf("\n");
-
-
-
-    for (size_t i = 0; i < left; i++) printf("%c",' ');
-    printf("%s", TOP_LEFT_CORNER);
-    printf("%s", title);
-    for (size_t i = left; i < right - title_len - 2; i++)
-        printf("%s", HORIZONTAL);
-    printf("%s\n\r", TOP_RIGHT_CORNER);
-
-    for (size_t row = top + 1; row < bot - 1; row++) {
-        for (size_t j = 0; j < left; j++) printf(" ");
-        printf("%s", VERTICAL);
-        for (size_t i = 0; i < width - 2; i++) printf(" ");
-        printf("%s\n\r", VERTICAL);
-    }
-
-    for (size_t i = 0; i < left; i++) printf(" ");
-    printf("%s", BOTTOM_LEFT_CORNER);
-    for (size_t i = left; i < right - 2; i++) printf("%s", HORIZONTAL);
-    printf("%s", BOTTOM_RIGHT_CORNER);
-
-}
-
 void* exit_listener () {
     char c;
     while ((c = getchar()) != 'q');
-    pthread_exit((void*) 1);
+    stop(EXIT_SUCCESS);    
 }
+int resized;
 
-void* sz_listener () {
-    struct winsize current_sz;
-    struct winsize prev_sz;
-    ioctl(0, TIOCGWINSZ, &current_sz);
-    ioctl(0, TIOCGWINSZ, &prev_sz);
 
-    while (1) {
-        ioctl(0, TIOCGWINSZ, &current_sz);
-        if (current_sz.ws_row != prev_sz.ws_row || current_sz.ws_col != prev_sz.ws_col) {
-            return ((void*) 1);
-        }
-        prev_sz.ws_col = current_sz.ws_col;
-        prev_sz.ws_row = current_sz.ws_row;
+void sig_handler (int signo) {
+    if (signo == SIGWINCH) {
+        resized = 1;
     }
-
 }
-
-
 int main () {
-    system("tput smcup");
-    printf("\e[?25l");
-    printf("\e[?30l");
-
-    char c;
-    struct winsize sz;
-    //struct winsize prev_sz;
-    ioctl(0, TIOCGWINSZ, &sz);
-    //ioctl(0, TIOCGWINSZ, &prev_sz);
-    system("/bin/stty raw");
-    window_t* window = create_window(2, sz.ws_row - 1, 1, sz.ws_col - 1);
-    //TF1_window* window = TF1_create_window(10, 10, 10, 10);
-    set_title(window, "Testing");
-    set_colour(window, "Cyan");
-
+    terminal_start_config();
     pthread_t exit_thread;
     pthread_create(&exit_thread, NULL, exit_listener, NULL);
-    pthread_t sz_thread;
-    pthread_create(&sz_thread, NULL, sz_listener, NULL);
-    
-    while(1) {
-        system("clear");
-        struct winsize temp_sz;
-        ioctl(1, TIOCGWINSZ, &temp_sz);
-        system("tput cols");
-        system("tput lines");
-        /*
-        if (temp_sz.ws_row < window->dim->bot || temp_sz.ws_col < window->dim->right) {
+    signal(SIGWINCH, sig_handler); 
+
+    struct winsize sz;
+    ioctl(0, TIOCGWINSZ, &sz);
+
+    window_t* window = create_window(2, sz.ws_row - 50, 1, sz.ws_col - 10);
+    set_title(window, "Testing");
+    set_colour(window, BRIGHT_GREEN);
+    draw_window(window);
+
+    while (1) {
+        if (resized) {
             system("clear");
-            exit(EXIT_FAILURE);
-            printf("changed");
-            set_colour(window, "Red");
-            set_title(window, "Error");
+            ioctl(0, TIOCGWINSZ, &window->current_terminal_sz);
+            set_colour(window, BRIGHT_RED);
+            set_title(window, "Changed");
+            resize_window(window, 2, window->current_terminal_sz.ws_row - 1, 1, window->current_terminal_sz.ws_col - 1);
+            draw_window(window);
+            resized = 0;
         }
-        */
-        //draw_window(window);
-        void* thread_ended;
-        pthread_join(exit_thread, &thread_ended);
-        if (thread_ended) break;
     }
-    system("clear");
-    system("/bin/stty cooked");
-    printf("\e[?25h");
-    system("tput rmcup");
     return 0;
 }
