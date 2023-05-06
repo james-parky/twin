@@ -17,24 +17,25 @@
 #define HORIZONTAL "─"
 #define VERTICAL "│"
 
-
-
-
-#define CYAN "\e[36;1m"
-#define RED "\e[36;31m"
 #define RESET_COLOUR "\e[0m"
+
+#define BLACK "\e[30m"
+#define RED "\e[31m"
+#define GREEN "\e[32m"
+#define YELLOW "\e[33m"
+#define BLUE "\e[34m"
+#define MAGENTA "\e[35m"
+#define CYAN "\e[36m"
+#define WHITE"\e[37m"
 
 #define BRIGHT_BLACK "\e[30;1m"
 #define BRIGHT_RED "\e[31;1m"
 #define BRIGHT_GREEN "\e[32;1m"
-/*
-Bright Yellow: "\e[33;1m"
-Bright Blue: "\e[34;1m"
-Bright Magenta: "\e[35;1m"
-Bright Cyan: "\e[36;1m"
-Bright White: "\e[37;1m"
-Reset: "\e[0m"
-*/
+#define BRIGHT_YELLOW "\e[33;1m"
+#define BRIGHT_BLUE "\e[34;1m"
+#define BRIGHT_MAGENTA "\e[35;1m"
+#define BRIGHT_CYAN "\e[36;1m"
+#define BRIGHT_WHITE"\e[37;1m"
 
 int update_happened = 0;
 
