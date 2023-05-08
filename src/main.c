@@ -18,6 +18,8 @@
  * draw window
  * draw windows
  * errors when draw space is too small
+ * draw returns an int to check if it drew properly or not
+ * can be based on struff such as not enough space or invlaid coords
  *
  * IMPLEMENTATION
  * auto resize
@@ -44,7 +46,7 @@
 #define BLUE "\e[34m"
 #define MAGENTA "\e[35m"
 #define CYAN "\e[36m"
-#define WHITE"\e[37m"
+#define WHITE "\e[37m"
 
 #define BRIGHT_BLACK "\e[30;1m"
 #define BRIGHT_RED "\e[31;1m"
@@ -53,15 +55,15 @@
 #define BRIGHT_BLUE "\e[34;1m"
 #define BRIGHT_MAGENTA "\e[35;1m"
 #define BRIGHT_CYAN "\e[36;1m"
-#define BRIGHT_WHITE"\e[37;1m"
+#define BRIGHT_WHITE "\e[37;1m"
 
 int update_happened = 0;
 
 void terminal_start_config () {
     system("tput smcup");
-    printf("\e[?25l");
-    printf("\e[?30l");
-    printf("\e[?30h");
+    //printf("\e[?25l");
+    //printf("\e[?30l");
+    //printf("\e[?30h");
     system("/bin/stty raw");
 }
 
@@ -276,14 +278,70 @@ void draw_windows (size_t num, ...) {
  *          print buffer
  * */
 
+/*0=" ", 1=TL, 2=BL, 3=BR, 4=TR, 5=V, 6=H*/
+/*
+void draw_window_buf (window_t* win) {
+    if (win->colour) printf("%s", window->colour);
+    char* buf = calloc(win->current_terminal_sz.ws_row * win->current_terminal_sz.ws_col + 1, 1);
+    buf[win->current_terminal_sz.ws_row * win->current_terminal_sz.ws_col] = '\0';
 
+        for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
+        if (row < window->dim->top) {
+            for (size_t col = 0; col < window->current_terminal_sz.ws_col; col++)
+                buf[(win->current_terminal_sz.ws_col*row)+col] = 0//printf(" ");
+        }
+        else if (row == window->dim->top) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
+                if (col < window->dim->left) printf(" ");
+                else if (col == window->dim->left) {
+                    //printf("%s", TOP_LEFT_CORNER);
+                    printf("%s", window->title);
+                    col += strlen(window->title);
+                }
+                else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
+                else if (col == window->dim->right) printf("%s", TOP_RIGHT_CORNER);
+                else if (col > window->dim->right) printf(" ");
+            }
+        }
+        else if (row > window->dim->top && row < window->dim->bot) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
+                if (col < window->dim->left) printf(" ");
+                else if (col == window->dim->left) printf("%s", VERTICAL);
+                else if (col > window->dim->left && col < window->dim->right - 1) printf("0");
+                else if (col == window->dim->right) printf("%s", VERTICAL);
+                else if (col > window->dim->right) printf(" ");
+            }
+        }
+        else if (row == window->dim->bot) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col ; col++) {
+                if (col < window->dim->left) printf(" ");
+                else if (col == window->dim->left) printf("%s", BOTTOM_LEFT_CORNER);
+                else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
+                else if (col == window->dim->right) printf("%s", BOTTOM_RIGHT_CORNER);
+                else if (col > window->dim->right) printf(" ");
+            }
+        }
+        else if (row > window->dim->bot) printf("\n");
+/*        
+else if (row > window->dim->bot) {
+            for (size_t col = 0; col < window->current_terminal_sz.ws_col-1;col++) printf(" ");
+        }
+     }
 
+}
+*/
 
-
-
+/*
+ * write to buffer 
+ * or col number of row sized buffers
+ * and write buffer once
+ *
+ * */
 
 
 void draw_window (window_t* window) {
+    //size_t original_col = window->current_terminal_sz.ws_col;
+    //window->current_terminal_sz.ws_col +=(window->current_terminal_sz.ws_col & 1);
     if (window->colour) printf("%s", window->colour);
     for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
         if (row < window->dim->top) {
@@ -307,13 +365,13 @@ void draw_window (window_t* window) {
             for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) printf("%s", VERTICAL);
-                else if (col > window->dim->left && col < window->dim->right - 1) printf(" ");
+                else if (col > window->dim->left && col < window->dim->right - 1) printf("0");
                 else if (col == window->dim->right) printf("%s", VERTICAL);
                 else if (col > window->dim->right) printf(" ");
             }
         }
         else if (row == window->dim->bot) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
+            for (size_t col = 0; col <= window->current_terminal_sz.ws_col ; col++) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) printf("%s", BOTTOM_LEFT_CORNER);
                 else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
@@ -322,28 +380,37 @@ void draw_window (window_t* window) {
             }
         }
         else if (row > window->dim->bot) printf("\n");
-    }
-    printf("%s\r", RESET_COLOUR);
+/*        
+else if (row > window->dim->bot) {
+            for (size_t col = 0; col < window->current_terminal_sz.ws_col-1;col++) printf(" ");
+        }*/
+     }
+    printf("%s", RESET_COLOUR);
+    printf("\033[%d;%dH", 0,0);
+
+    //window->current_terminal_sz.ws_col = original_col;
 }
 
-void* exit_listener () {
+void exit_listener () {
     char c;
     while ((c = getchar()) != 'q');
     stop(EXIT_SUCCESS);    
 }
-int resized;
+int resized = 0;
 
 
 void sig_handler (int signo) {
     if (signo == SIGWINCH) {
         resized = 1;
         system("clear");
+        //printf("\033[0;0H");
     }
 }
+
 int main () {
     terminal_start_config();
     pthread_t exit_thread;
-    pthread_create(&exit_thread, NULL, exit_listener, NULL);
+    pthread_create(&exit_thread, NULL, (void*) exit_listener, NULL);
     signal(SIGWINCH, sig_handler); 
 
     struct winsize sz;
@@ -354,14 +421,12 @@ int main () {
     set_colour(window, BRIGHT_GREEN);
     draw_window(window);
     
-    window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 1, (size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
+    //window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 1,(size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
     //draw_window(window1);
-    draw_windows(2, window, window1);
-    while(1);
-    /*
+    //draw_windows(2, window, window1);
+    
     while (1) {
         if (resized) {
-            system("clear");
             ioctl(0, TIOCGWINSZ, &window->current_terminal_sz);
             set_colour(window, BRIGHT_RED);
             set_title(window, "Changed");
@@ -370,6 +435,6 @@ int main () {
             resized = 0;
         }
     }
-    */
+    
     return 0;
 }
