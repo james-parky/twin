@@ -80,8 +80,6 @@ void stop (int exit_code) {
 }
 
 
-
-
 /*
  * IDEAS
  *
@@ -89,6 +87,7 @@ void stop (int exit_code) {
  * has count of frames which is incremented
  * frames have coordinates
  *
+ * perhaps
  *
  *
  *
@@ -117,13 +116,20 @@ typedef struct dim_t dim_t;
 
 struct window_t {
     char* title;
-    char** contents;
+    char* contents;
     dim_t* dim;
     char* colour;
     struct winsize current_terminal_sz;
     struct winsize original_terminal_sz;
 };
 typedef struct window_t window_t;
+
+void overwrite(window_t* win) {
+    system("clear");
+    sleep(200);
+    //for (size_t i = 0; win->current_terminal_sz.ws_row * win->current_terminal_sz.ws_col; i++)
+      //  printf(" ");
+}
 
 
 
@@ -337,8 +343,11 @@ else if (row > window->dim->bot) {
  * and write buffer once
  *
  * */
-
-
+void set_contents(window_t* window, char* contents) {
+    window->contents = malloc(strlen(contents) + 1);
+    window->contents[strlen(contents)] = '\0';
+    strncpy(window->contents, contents, strlen(contents));
+} 
 void draw_window (window_t* window) {
     //size_t original_col = window->current_terminal_sz.ws_col;
     //window->current_terminal_sz.ws_col +=(window->current_terminal_sz.ws_col & 1);
@@ -365,7 +374,10 @@ void draw_window (window_t* window) {
             for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) printf("%s", VERTICAL);
-                else if (col > window->dim->left && col < window->dim->right - 1) printf("0");
+                else if (col > window->dim->left && col < window->dim->right - 1) {
+                    if (window->contents) printf("%c", window->contents[(row*window->current_terminal_sz.ws_col+col)]);
+                    else printf(" ");
+                }
                 else if (col == window->dim->right) printf("%s", VERTICAL);
                 else if (col > window->dim->right) printf(" ");
             }
@@ -402,7 +414,7 @@ int resized = 0;
 void sig_handler (int signo) {
     if (signo == SIGWINCH) {
         resized = 1;
-        system("clear");
+        //system("clear");
         //printf("\033[0;0H");
     }
 }
@@ -419,6 +431,9 @@ int main () {
     window_t* window = create_window(2, (size_t) sz.ws_row / 2, 1, (size_t) sz.ws_col / 2);
     set_title(window, "Testing");
     set_colour(window, BRIGHT_GREEN);
+
+    char* contents = "Some contents are here but the list is very long";
+    set_contents(window, contents);
     draw_window(window);
     
     //window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 1,(size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
@@ -427,6 +442,7 @@ int main () {
     
     while (1) {
         if (resized) {
+            system("clear");
             ioctl(0, TIOCGWINSZ, &window->current_terminal_sz);
             set_colour(window, BRIGHT_RED);
             set_title(window, "Changed");
