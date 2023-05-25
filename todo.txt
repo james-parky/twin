@@ -1,0 +1,14 @@
+Finish library content
+Fully comment 
+Create Readme in English and Korean
+Create full set of docs and usages
+Create Homebrew cask for it to allow it be installed
+
+Fully create in Python and do all of the same above
+Create pip entry
+
+Build Formula 1 app to demonstrate usage
+Have in separate repository with link to the library
+Use screenshots as use cases in the library readme
+
+
