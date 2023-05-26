@@ -212,32 +212,50 @@ void draw_windows (size_t num, ...) {
     va_list windows;
     size_t count = 0;
     va_start(windows, num);
-    window_t* window;
+    window_t* original_window;
     for (size_t i = 0; i < num; i++) {
-        window = va_arg(windows, window_t*);
+        original_window = va_arg(windows, window_t*);
         count++;
     }
+
     if (count != num) {
         printf("bad args");
         exit(EXIT_FAILURE);
     }
+
+    struct winsize current_terminal_sz = original_window->current_terminal_sz; 
     va_end(windows);
-    for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
-        for (size_t col = 0; col <= window->current_terminal_sz.ws_col - 1; col++) {
+    system("clear");
+    for (size_t row = 0; row <= current_terminal_sz.ws_row; row++) {
+        for (size_t col = 0; col < current_terminal_sz.ws_col; col++) {
             va_start(windows, num);
             int is_vert = 0;
             int is_tl = 0;
+            int is_tr = 0;
+            int is_bl = 0;
+            int is_br = 0;
+            int is_hor = 0;
             for (size_t i = 0; i < num; i++){
-                window = va_arg(windows, window_t*);
-                if (row == window->dim->top && col == window->dim->left) is_tl = 1;
-                if ((row > window->dim->top && row < window->dim->bot) && (col == window->dim->left || col == window->dim->right)) is_vert = 1; 
+                window_t* window = va_arg(windows, window_t*);
+                dim_t* dim = window->dim;
+                is_tl |= (row == dim->top && col == dim->left);
+                is_tr |= (row == dim->top && col == dim->right);
+                is_bl |= (row == dim->bot && col == dim->left);
+                is_br |= (row == dim->bot && col == dim->right);
+                is_vert |= ((row > dim->top && row < dim->bot) && (col == dim->left || col == dim->right));
+                is_hor |= ((row == dim->top || row == dim->bot) && (col < dim->right && col > dim->left));
+
             }
+            va_end(windows);
             if (is_vert) printf(VERTICAL);
+            else if (is_hor) printf(HORIZONTAL);
             else if (is_tl) printf(TOP_LEFT_CORNER);
+            else if (is_bl) printf(BOTTOM_LEFT_CORNER);
+            else if (is_br) printf(BOTTOM_RIGHT_CORNER);
+            else if (is_tr) printf(TOP_RIGHT_CORNER);
             else printf(" ");
         }
     }
-    va_end(windows);
 }
     /*
     dim_t* dims[num];
@@ -375,8 +393,7 @@ void draw_window (window_t* window) {
                 if (col < window->dim->left) printf(" ");
                 else if (col == window->dim->left) printf("%s", VERTICAL);
                 else if (col > window->dim->left && col < window->dim->right - 1) {
-                    if (window->contents) printf("%c", window->contents[(row*window->current_terminal_sz.ws_col+col)]);
-                    else printf(" ");
+                   printf(" "); 
                 }
                 else if (col == window->dim->right) printf("%s", VERTICAL);
                 else if (col > window->dim->right) printf(" ");
@@ -436,9 +453,9 @@ int main () {
     set_contents(window, contents);
     draw_window(window);
     
-    //window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 1,(size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
+    window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 5,(size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
     //draw_window(window1);
-    //draw_windows(2, window, window1);
+    draw_windows(2, window, window1);
     
     while (1) {
         if (resized) {
