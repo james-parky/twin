@@ -206,6 +206,10 @@ void set_title (window_t* window, const char* title) {
  *
  * */
 
+void print_border_section (char* colour, char* section) {
+    printf("%s%s%s", colour ? colour : (const char*) RESET_COLOUR, section, RESET_COLOUR);
+}
+
 void draw_windows (size_t num, ...) {
     struct winsize sz;
     ioctl(0, TIOCGWINSZ, &sz);
@@ -225,7 +229,6 @@ void draw_windows (size_t num, ...) {
 
     struct winsize current_terminal_sz = original_window->current_terminal_sz; 
     va_end(windows);
-    system("clear");
     for (size_t row = 0; row <= current_terminal_sz.ws_row; row++) {
         for (size_t col = 0; col < current_terminal_sz.ws_col; col++) {
             va_start(windows, num);
@@ -238,123 +241,38 @@ void draw_windows (size_t num, ...) {
             for (size_t i = 0; i < num; i++){
                 window_t* window = va_arg(windows, window_t*);
                 dim_t* dim = window->dim;
-                is_tl |= (row == dim->top && col == dim->left);
-                is_tr |= (row == dim->top && col == dim->right);
-                is_bl |= (row == dim->bot && col == dim->left);
-                is_br |= (row == dim->bot && col == dim->right);
-                is_vert |= ((row > dim->top && row < dim->bot) && (col == dim->left || col == dim->right));
-                is_hor |= ((row == dim->top || row == dim->bot) && (col < dim->right && col > dim->left));
-
+                int tl = (row == dim->top && col == dim->left);
+                int tr = (row == dim->top && col == dim->right);
+                int bl = (row == dim->bot && col == dim->left);
+                int br = (row == dim->bot && col == dim->right);
+                int vert = ((row > dim->top && row < dim->bot) && (col == dim->left || col == dim->right));
+                int hor = ((row == dim->top || row == dim->bot) && (col < dim->right && col > dim->left));
+                if (vert) print_border_section(window->colour, VERTICAL);
+                else if (tl) {
+                    print_border_section(window->colour, TOP_LEFT_CORNER);
+                    if (window->title) {
+                        print_border_section(window->colour, window->title);
+                        col+= strlen(window->title);
+                    }
+                }
+                else if (bl) print_border_section(window->colour, BOTTOM_LEFT_CORNER);
+                else if (br) print_border_section(window->colour, BOTTOM_RIGHT_CORNER);
+                else if (tr) print_border_section(window->colour, TOP_RIGHT_CORNER);
+                else if (hor) print_border_section(window->colour, HORIZONTAL);
+                is_vert|=vert;
+                is_tl|=tl;
+                is_tr|=tr;
+                is_br|=br;
+                is_bl|=bl;
+                is_hor|=hor;
             }
             va_end(windows);
-            if (is_vert) printf(VERTICAL);
-            else if (is_hor) printf(HORIZONTAL);
-            else if (is_tl) printf(TOP_LEFT_CORNER);
-            else if (is_bl) printf(BOTTOM_LEFT_CORNER);
-            else if (is_br) printf(BOTTOM_RIGHT_CORNER);
-            else if (is_tr) printf(TOP_RIGHT_CORNER);
-            else printf(" ");
+            if (!(is_vert|is_tl|is_tr|is_bl|is_br|is_hor)) printf(" ");
         }
     }
+    fflush(stdout);
 }
-    /*
-    dim_t* dims[num];
-    char* titles[num];
-    va_start(windows, num);
-    for (size_t i = 0; i < num; i++) {
-        window_t* window = va_arg(windows, window_t*);
-
-        dims[i] = window->dim;
-        titles[i] = malloc(strlen(window->title) + 1);
-        strncpy(titles[i], window->title, strlen(window->title));
-        titles[i][strlen(window->title)] = '\0';
-    }
-
-    for (size_t row = 0; row < sz.ws_row; row++){
-        for (size_t col = 0; col < sz.ws_col; col++) {
-            int is_in = 0;
-            for (size_t i = 0; i < num; i++) {
-                if (row == dims[i]->top) {
-                    if (col < dims[i]->left) printf(" ");
-                    if (col == dims[i]->left) { 
-                        printf(TOP_LEFT_CORNER);
-                        printf("%s", titles[i]);
-                        col += strlen(titles[i]);
-                    }
-                    else if (col == dims[i]->right) printf(TOP_RIGHT_CORNER);
-                    else printf(HORIZONTAL);
-                }
-                else printf(" ");
-                //if (row >= dims[i]->top && row <= dims[i]->bot && col >= dims[i]->left && col <= dims[i]->right) is_in = 1;
-            }
-            //if (is_in) printf("x");
-            //else printf(" ");
-        }
-    }*/
-
-
-    /*
- * draw windows():
- *      for row in the terminal
- *          create a buffer of size of num of cols
- *          for each window
- *              write to buffer appropriately
- *          print buffer
- * */
-
-/*0=" ", 1=TL, 2=BL, 3=BR, 4=TR, 5=V, 6=H*/
-/*
-void draw_window_buf (window_t* win) {
-    if (win->colour) printf("%s", window->colour);
-    char* buf = calloc(win->current_terminal_sz.ws_row * win->current_terminal_sz.ws_col + 1, 1);
-    buf[win->current_terminal_sz.ws_row * win->current_terminal_sz.ws_col] = '\0';
-
-        for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
-        if (row < window->dim->top) {
-            for (size_t col = 0; col < window->current_terminal_sz.ws_col; col++)
-                buf[(win->current_terminal_sz.ws_col*row)+col] = 0//printf(" ");
-        }
-        else if (row == window->dim->top) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
-                if (col < window->dim->left) printf(" ");
-                else if (col == window->dim->left) {
-                    //printf("%s", TOP_LEFT_CORNER);
-                    printf("%s", window->title);
-                    col += strlen(window->title);
-                }
-                else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
-                else if (col == window->dim->right) printf("%s", TOP_RIGHT_CORNER);
-                else if (col > window->dim->right) printf(" ");
-            }
-        }
-        else if (row > window->dim->top && row < window->dim->bot) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
-                if (col < window->dim->left) printf(" ");
-                else if (col == window->dim->left) printf("%s", VERTICAL);
-                else if (col > window->dim->left && col < window->dim->right - 1) printf("0");
-                else if (col == window->dim->right) printf("%s", VERTICAL);
-                else if (col > window->dim->right) printf(" ");
-            }
-        }
-        else if (row == window->dim->bot) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col ; col++) {
-                if (col < window->dim->left) printf(" ");
-                else if (col == window->dim->left) printf("%s", BOTTOM_LEFT_CORNER);
-                else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
-                else if (col == window->dim->right) printf("%s", BOTTOM_RIGHT_CORNER);
-                else if (col > window->dim->right) printf(" ");
-            }
-        }
-        else if (row > window->dim->bot) printf("\n");
-/*        
-else if (row > window->dim->bot) {
-            for (size_t col = 0; col < window->current_terminal_sz.ws_col-1;col++) printf(" ");
-        }
-     }
-
-}
-*/
-
+ 
 /*
  * write to buffer 
  * or col number of row sized buffers
@@ -415,7 +333,7 @@ else if (row > window->dim->bot) {
         }*/
      }
     printf("%s", RESET_COLOUR);
-    printf("\033[%d;%dH", 0,0);
+    fflush(stdout);
 
     //window->current_terminal_sz.ws_col = original_col;
 }
@@ -453,9 +371,12 @@ int main () {
     set_contents(window, contents);
     draw_window(window);
     
-    window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 5,(size_t) sz.ws_col / 2 + 5, sz.ws_col - 1);
+    window_t* window1 = create_window((size_t) sz.ws_row / 2, sz.ws_row - 5,(size_t) sz.ws_col / 2 + 5, sz.ws_col - 4);
     //draw_window(window1);
-    draw_windows(2, window, window1);
+    set_colour(window1, BRIGHT_RED);
+    set_title(window1, "Window Two");
+    system("clear");
+    draw_windows(1, window);
     
     while (1) {
         if (resized) {
