@@ -29,12 +29,6 @@ void set_title (window_t* window, const char* title);
 
 void set_contents(window_t* window, char* contents);
 
-void print_border_section (char* colour, char* section);
-
-int overlap (window_t* prev_win, window_t* current_win);
-
-int windows_overlap (size_t num, va_list windows);
-
 int draw_windows (size_t num, ...);
 
 void draw_window (window_t* window);
