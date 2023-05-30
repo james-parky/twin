@@ -1,5 +1,6 @@
-#include <sys/ioctl.h>
 #include <stdarg.h>
+#include <sys/ioctl.h>
+
 
 struct dim_t {
     size_t top, bot, left, right;
@@ -17,6 +18,16 @@ struct window_t {
 };
 typedef struct window_t window_t;
 
+struct node_t {
+    window_t* window;
+    struct node_t* next;
+};
+typedef struct node_t node_t;
+
+node_t* new_node (window_t* window);
+
+node_t* insert_at_tail (node_t* tail, node_t* new);
+
 window_t* create_window (size_t top, size_t bot, size_t left,
                                size_t right);
 
@@ -32,3 +43,9 @@ void set_contents(window_t* window, char* contents);
 int draw_windows (size_t num, ...);
 
 void draw_window (window_t* window);
+
+void twin_init();
+
+extern window_t* flex_window_head;
+extern node_t* flex_windows;
+extern node_t* flex_windows_tail;

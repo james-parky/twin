@@ -7,6 +7,42 @@
 #include "errorf.h"
 #include "colours.h"
 
+window_t* flex_window_head;
+node_t* flex_windows;
+node_t* flex_windows_tail;
+
+
+
+
+node_t* new_node (window_t* window) {
+    node_t* node = malloc(sizeof(node_t));
+    node->window = window;
+    node->next = NULL;
+    return node;
+}
+
+node_t* insert_at_tail (node_t* tail, node_t* new) {
+    tail->next = new;
+    tail = new;
+    return new;
+}
+
+void twin_init () {
+    dim_t* dim = malloc(sizeof(dim_t));
+    dim->top=0;
+    dim->bot=0;
+    dim->left=0;
+    dim->right=0;
+    flex_window_head = malloc(sizeof(window_t));
+    flex_window_head->dim=dim;
+    flex_window_head->contents_ptr=0;
+
+
+        //create_window(0,0,0,0);
+    flex_windows = new_node(flex_window_head);
+    flex_windows_tail = flex_windows;
+}
+
 window_t* create_window (size_t top, size_t bot, size_t left,
                                size_t right) {
     dim_t* dim = malloc(sizeof(dim_t));
@@ -21,6 +57,9 @@ window_t* create_window (size_t top, size_t bot, size_t left,
 
     ioctl(0, TIOCGWINSZ, &window->current_terminal_sz);
     ioctl(0, TIOCGWINSZ, &window->original_terminal_sz);
+
+    node_t* node = new_node(window);
+    flex_windows_tail = insert_at_tail(flex_windows_tail, node);
     return window;
 }
 

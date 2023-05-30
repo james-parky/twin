@@ -73,14 +73,18 @@ void print_error_line (const size_t error_line_num, const char* file_name) {
 void overlap_error () {
     terminal_stop_config();
     system("clear");
-    print_error_header(__FILE__, 0, 0, "overlapping windows", "a call to draw_windows() contains windows that overlap each other");
+    print_error_header(__FILE__, 0, 0, "overlapping windows",
+                       "a call to draw_windows() contains windows that"
+                       "overlap each other");
     exit(EXIT_FAILURE);
 }
 
 void contents_error () {
     terminal_stop_config();
     system("clear");
-    print_error_header(__FILE__, 0, 0, "window content too large", "the contents you provided for the window is too large to fit within the available space");
+    print_error_header(__FILE__, 0, 0, "window content too large",
+                       "the contents you provided for the window is too large"
+                       "to fit within the available space");
     exit(EXIT_FAILURE);
 
 }
