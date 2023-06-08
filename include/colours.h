@@ -1,12 +1,74 @@
 #ifndef COLOURS_H_
 #define COLOURS_H_
 
-#define TOP_LEFT_CORNER "┌"
-#define BOTTOM_LEFT_CORNER "└"
-#define TOP_RIGHT_CORNER "┐"
-#define BOTTOM_RIGHT_CORNER "┘"
-#define HORIZONTAL "─"
-#define VERTICAL "│"
+// HORIZONTALS
+#define HORZ_THIN_SOLID "─"
+#define HORZ_BOLD_SOLID "━"
+#define HORZ_THIN_DASHED "┄"
+#define HORZ_BOLD_DASHED "┅"
+#define HORZ_THIN_DOTTED "┈"
+#define HORZ_BOLD_DOTTED "┉"
+#define HORZ_THIN_HALF "╌"
+#define HORZ_BOLD_HALF "╍"
+#define HORZ_DOUBLE "═"
+
+// VERTICALS
+#define VERT_THIN_SOLID "│"
+#define VERT_BOLD_SOLID "┃"
+#define VERT_THIN_DASHED "┆"
+#define VERT_BOLD_DASHED "┇"
+#define VERT_THIN_DOTTED "┊"
+#define VERT_BOLD_DOTTED "┋"
+#define VERT_THIN_HALF "╎"
+#define VERT_BOLD_HALF "╏"
+#define VERT_DOUBLE "║"	 
+
+// TL
+#define TL_THIN "┌"
+#define TL_TOP_HEAVY "┍"
+#define TL_SIDE_HEAVY "┎"
+#define TL_BOLD "┏"
+#define TL_TOP_DOUBLE "╒"
+#define TL_SIDE_DOUBLE "╓"
+#define TL_DOUBLE "╔"
+#define TL_CURVED "╭"
+
+// TR
+#define TR_THIN "┐"
+#define TR_TOP_HEAVY "┑"
+#define TR_SIDE_HEAVY "┒"
+#define TR_BOLD "┓"
+#define TR_TOP_DOUBLE "╕"
+#define TR_SIDE_DOUBLE "╖"
+#define TR_DOUBLE "╗"
+#define TR_CURVED "╮"
+			
+// BL
+#define BL_THIN "┌"
+#define BL_TOP_HEAVY "┍"
+#define BL_SIDE_HEAVY "┎"
+#define BL_BOLD "┏"
+#define BL_TOP_DOUBLE "╒"
+#define BL_SIDE_DOUBLE "╓"
+#define BL_DOUBLE "╔"
+#define BL_CURVED "╭"
+
+// BR
+#define BR_THIN "┌"
+#define BR_TOP_HEAVY "┍"
+#define BR_SIDE_HEAVY "┎"
+#define BR_BOLD "┏"
+#define BR_TOP_DOUBLE "╒"
+#define BR_SIDE_DOUBLE "╓"
+#define BR_DOUBLE "╔"
+#define BR_CURVED "╭"
+
+// LEFT T
+// RIGHT T
+// BOT T
+// TOP T
+// CROSS
+// DIAG
 
 #define RESET_COLOUR "\e[0m"
 #define BOLD "\x1B[1m"
