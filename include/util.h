@@ -1,5 +1,5 @@
-#ifndef UTIL_H_
-#define UTIL_H_
+#ifndef TWIN_UTIL_H_
+#define TWIN_UTIL_H_
 
 void terminal_start_config ();
 

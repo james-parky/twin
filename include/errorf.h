@@ -9,11 +9,11 @@
 
 #define LINE_MAX 1024
 
-void print_error_header(const char* file_name, const size_t line_num,
+void print_error_header (const char* file_name, const size_t line_num,
                         const size_t col_num, const char* reason,
                         const char* message);
 
-void print_warning_header(const char* file_name, const size_t line_num,
+void print_warning_header (const char* file_name, const size_t line_num,
                           const size_t col_num, const char* reason,
                           const char* message); 
 
@@ -24,5 +24,7 @@ void contents_error (const char* file, const size_t line);
 void z_index_error (const char* file, const size_t line);
 
 void window_count_error (const char* file, const size_t line);
+
+void double_init_error (const char* file, const size_t line);
 
 #endif
