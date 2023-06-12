@@ -17,8 +17,12 @@ void print_warning_header(const char* file_name, const size_t line_num,
                           const size_t col_num, const char* reason,
                           const char* message); 
 
-void overlap_error ();
+void overlap_error (const char* file, const size_t line);
 
-void contents_error ();
+void contents_error (const char* file, const size_t line);
+
+void z_index_error (const char* file, const size_t line);
+
+void window_count_error (const char* file, const size_t line);
 
 #endif

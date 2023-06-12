@@ -6,6 +6,7 @@
 #include "errorf.h"
 #include "util.h"
 
+
 void subst (char *s, const char from, const char to) {
     while (*s == from)
         *s++ = to;
@@ -18,7 +19,7 @@ void print_header (const char* file_name, const size_t line_num,
     if((file = fopen(file_name, "r")) == NULL) {
         print_error_header(__FILE__, __LINE__, 0,
                            "file does not exist",
-                           "the file_name that you supplied to print_header()"
+                           "the file_name that you supplied to print_header() "
                            "does not exist");
         exit(EXIT_FAILURE);
     }
@@ -59,7 +60,7 @@ void print_error_line (const size_t error_line_num, const char* file_name) {
     if ((file = fopen(file_name, "r")) == NULL){
         print_error_header(__FILE__, __LINE__, 0,
                            "file does not exist",
-                           "the file_name that you supplied to print_header()"
+                           "the file_name that you supplied to print_header() "
                            "does not exist");
         exit(EXIT_FAILURE);
     }
@@ -70,23 +71,36 @@ void print_error_line (const size_t error_line_num, const char* file_name) {
     fclose(file);
 }
 
-void overlap_error () {
+void overlap_error (const char* file, const size_t line) {
     terminal_stop_config();
     system("clear");
-    print_error_header(__FILE__, 0, 0, "overlapping windows",
-                       "a call to draw_windows() contains windows that"
+    print_error_header(file, line, 0, "overlapping windows",
+                       "a call to draw_windows() contains windows that "
                        "overlap each other");
     exit(EXIT_FAILURE);
 }
 
-void contents_error () {
+void contents_error (const char* file, const size_t line) {
     terminal_stop_config();
     system("clear");
-    print_error_header(__FILE__, 0, 0, "window content too large",
+    print_error_header(file, line, 0, "window content too large",
                        "the contents you provided for the window is too large"
                        "to fit within the available space");
     exit(EXIT_FAILURE);
-
 }
 
+void z_index_error (const char* file, const size_t line) {
+    terminal_stop_config();
+    system("clear");
+    print_error_header(file, line, 0, "negative z index", "the z_index value "
+                       "of a window cannot be negative - it is used for "
+                       "the rendering order of the active windows");
+}
 
+void window_count_error (const char* file, const size_t line) {
+    terminal_stop_config();
+    system("clear");
+    print_error_header(file, line, 0, "window count error", "the number of "
+                       "windows supplied to draw_windows() does not match the "
+                       "the supplied num variable");
+}

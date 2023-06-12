@@ -7,11 +7,15 @@
 #include "errorf.h"
 #include "colours.h"
 
+
+#define SET(style, attr, var) style->attr = malloc(strlen(var) + 1);\
+                              strncpy(style->attr, var, strlen(var));\
+                              style->attr[strlen(var) + 1] = '\0';
+
 window_t* flex_window_head;
 node_t* flex_windows;
 node_t* flex_windows_tail;
-
-
+size_t window_count;
 
 
 node_t* new_node (window_t* window) {
@@ -36,11 +40,13 @@ void twin_init () {
     flex_window_head = malloc(sizeof(window_t));
     flex_window_head->dim=dim;
     flex_window_head->contents_ptr=0;
+    flex_window_head->z_index = -1;
 
 
         //create_window(0,0,0,0);
     flex_windows = new_node(flex_window_head);
     flex_windows_tail = flex_windows;
+    window_count = 0;
 }
 
 window_t* create_window (size_t top, size_t bot, size_t left,
@@ -53,11 +59,14 @@ window_t* create_window (size_t top, size_t bot, size_t left,
 
     window_t* window = malloc(sizeof(window_t));
     window->dim = dim;
+    window->contents = NULL;
     window->contents_ptr = 0;
+    window->z_index = window_count++;
+    set_general_style(window, GENERAL_THIN_SOLID);
 
     ioctl(0, TIOCGWINSZ, &window->current_terminal_sz);
     ioctl(0, TIOCGWINSZ, &window->original_terminal_sz);
-
+    
     node_t* node = new_node(window);
     flex_windows_tail = insert_at_tail(flex_windows_tail, node);
     return window;
@@ -85,13 +94,109 @@ void set_title (window_t* window, const char* title) {
 }
 
 void set_contents(window_t* window, char* contents) {
-    int max_content_size = (window->dim->bot - window->dim->top)
+    size_t max_content_size = (window->dim->bot - window->dim->top)
         * (window->dim->right - window->dim->left);
-    if (max_content_size < (size_t) strlen(contents)) contents_error();
+    if (max_content_size < strlen(contents))
+        contents_error(__FILE__, __LINE__);
     window->contents = malloc(strlen(contents) + 1);
-    window->contents[strlen(contents)] = '\0';
     strncpy(window->contents, contents, strlen(contents));
+    window->contents[strlen(contents)] = '\0';
 } 
+
+void set_z_index (window_t* window, size_t z_index) {
+    if ((int) z_index < 0) z_index_error(__FILE__, __LINE__); 
+    window->z_index = (int) z_index;
+}
+
+void _set_style (window_t* win, char* horz, char*vert, char* tl, char* tr,
+                 char* bl, char* br, char* left_t, char* right_t, char* top_t,
+                 char* bot_t, char* cross) {
+    style_t* style = malloc(sizeof(style_t));
+    SET(style, horz, horz);
+    SET(style, vert, vert);
+    SET(style, tl, tl);
+    SET(style, tr, tr);
+    SET(style, bl, bl);
+    SET(style, br, br);
+    SET(style, left_t, left_t);
+    SET(style, right_t, right_t);
+    SET(style, top_t, top_t);
+    SET(style, bot_t, bot_t);
+    SET(style, cross, cross);
+    win->style = style;
+}
+
+void set_general_style (window_t* win, enum general_style general_style) {
+    switch (general_style) {
+        case GENERAL_THIN_SOLID:
+            _set_style(win, HORZ_THIN_SOLID, VERT_THIN_SOLID, TL_THIN, TR_THIN,
+                       BL_THIN, BR_THIN, LEFT_T_THIN, RIGHT_T_THIN, TOP_T_THIN,
+                       BOT_T_THIN, CROSS_THIN);
+            break;
+
+        case GENERAL_BOLD_SOLID:
+            _set_style(win, HORZ_BOLD_SOLID, VERT_BOLD_SOLID, TL_BOLD, TR_BOLD,
+                       BL_BOLD, BR_BOLD, LEFT_T_BOLD, RIGHT_T_BOLD, TOP_T_BOLD,
+                       BOT_T_BOLD, CROSS_BOLD);
+            break;
+        case GENERAL_THIN_DASHED:
+            _set_style(win, HORZ_THIN_DASHED, VERT_THIN_DASHED, TL_BOLD,
+                       TR_BOLD, BL_BOLD, BR_BOLD, LEFT_T_BOLD, RIGHT_T_BOLD,
+                       TOP_T_BOLD, BOT_T_BOLD, CROSS_BOLD);
+            break;
+
+        case GENERAL_BOLD_DASHED:
+            _set_style(win, HORZ_BOLD_DASHED, VERT_BOLD_DASHED, TL_BOLD,
+                       TR_BOLD, BL_BOLD, BR_BOLD, LEFT_T_BOLD, RIGHT_T_BOLD,
+                       TOP_T_BOLD, BOT_T_BOLD, CROSS_BOLD);
+            break;
+        case GENERAL_THIN_DOTTED:
+            _set_style(win, HORZ_THIN_DOTTED, VERT_THIN_DOTTED, TL_BOLD,
+                       TR_BOLD, BL_BOLD, BR_BOLD, LEFT_T_BOLD, RIGHT_T_BOLD,
+                       TOP_T_BOLD, BOT_T_BOLD, CROSS_BOLD);
+            break;
+
+        case GENERAL_BOLD_DOTTED:
+            _set_style(win, HORZ_BOLD_DOTTED, VERT_BOLD_DOTTED, TL_BOLD,
+                       TR_BOLD, BL_BOLD, BR_BOLD, LEFT_T_BOLD, RIGHT_T_BOLD,
+                       TOP_T_BOLD, BOT_T_BOLD, CROSS_BOLD);
+            break;
+        case GENERAL_DOUBLE:
+            _set_style(win, HORZ_DOUBLE, VERT_DOUBLE, TL_DOUBLE, TR_DOUBLE,
+                       BL_DOUBLE, BR_DOUBLE, LEFT_T_DOUBLE_BOTH,
+                       RIGHT_T_DOUBLE_BOTH, TOP_T_DOUBLE_BOTH,
+                       BOT_T_DOUBLE_BOTH, CROSS_DOUBLE_BOTH);
+            break;
+    }
+}
+
+void set_horizontal_style (window_t* win, char* horz) {
+    SET(win->style, horz, horz);
+}
+
+void set_vert_style (window_t* win, char* vert) {
+    SET(win->style, vert, vert);
+}
+
+void set_top_left_style (window_t* win, char* tl) {
+    SET(win->style, tl, tl);
+}
+
+void set_top_right_style (window_t* win, char* tr) {
+    SET(win->style, tr, tr);
+}
+
+void set_bottom_left_style (window_t* win, char* bl) {
+    SET(win->style, bl, bl);
+}
+
+void set_bottom_right_style (window_t* win, char* br) {
+    SET(win->style, br, br);
+}
+
+void set_cross_style (window_t* win, char* cross) {
+    SET(win->style, cross, cross);
+}
 
 void print_border_section (char* colour, char* section) {
     printf("%s%s%s", colour ? colour : (const char*) RESET_COLOUR, section,
@@ -99,6 +204,7 @@ void print_border_section (char* colour, char* section) {
 }
 
 int overlap (window_t* prev_win, window_t* current_win) {
+    
     int left_inbetween = current_win->dim->left >= prev_win->dim->left
         && current_win->dim->left <= prev_win->dim->right;
     int right_inbetween = current_win->dim->right >= prev_win->dim->left
@@ -114,7 +220,6 @@ int overlap (window_t* prev_win, window_t* current_win) {
     int br_between = right_inbetween & bot_between;
 
     return tl_between | tr_between | bl_between | br_between;
-
 }
 
 int windows_overlap (size_t num, va_list windows) {
@@ -126,77 +231,85 @@ int windows_overlap (size_t num, va_list windows) {
     return 0;
 }
 
-int draw_windows (size_t num, ...) {
-    struct winsize sz;
-    ioctl(0, TIOCGWINSZ, &sz);
-    va_list windows;
-    size_t count = 0;
-    va_start(windows, num);
-    window_t* original_window;
+
+void set_content (char** cur_content, window_t* window, char* content) {
+    *cur_content = malloc(strlen(window->colour) + strlen(content)
+                          + strlen(RESET_COLOUR) + 1);
+    strncpy(*cur_content, window->colour, strlen(window->colour));
+    strncpy(*cur_content + strlen(window->colour), content, strlen(content));
+    strncpy(*cur_content + strlen(window->colour) + strlen(content),
+            RESET_COLOUR, strlen(RESET_COLOUR));
+    (*cur_content)[strlen(window->colour) + strlen(content)
+                   + strlen(RESET_COLOUR)] = '\0';
+}
+
+void reset_content_ptrs (size_t num, va_list windows) {
+    window_t* win;
     for (size_t i = 0; i < num; i++) {
-        original_window = va_arg(windows, window_t*);
-        count++;
+        win = va_arg(windows, window_t*);
+        win->contents_ptr = 0;
     }
-    if (count != num) {
-        printf("bad args");
-        exit(EXIT_FAILURE);
-    }
+}
+
+int draw_windows (size_t num, ...) {
+    va_list windows;
+    va_start(windows, num);
+    reset_content_ptrs(num, windows);
     va_end(windows);
     va_start(windows, num);
-    if (windows_overlap(num, windows)) return 0;
-    struct winsize current_terminal_sz = original_window->current_terminal_sz; 
+
+    struct winsize current_terminal_sz;
+    ioctl(0, TIOCGWINSZ, &current_terminal_sz);
+
     for (size_t row = 0; row <= current_terminal_sz.ws_row; row++) {
         for (size_t col = 0; col < current_terminal_sz.ws_col; col++) {
+            int max_z = -1;
+            char* cur_content = NULL;
+            int printed_title = 0;
             va_start(windows, num);
-            int is_vert = 0, is_tl = 0, is_tr = 0, is_bl = 0;
-            int is_br = 0, is_hor = 0, is_content = 0;
-
-            for (size_t i = 0; i < num; i++){
+            for (size_t win = 0; win < num; win++) {
                 window_t* window = va_arg(windows, window_t*);
                 dim_t* dim = window->dim;
-                int tl = (row == dim->top && col == dim->left);
-                int tr = (row == dim->top && col == dim->right);
-                int bl = (row == dim->bot && col == dim->left);
-                int br = (row == dim->bot && col == dim->right);
-                int vert = ((row > dim->top && row < dim->bot)
-                    && (col == dim->left || col == dim->right));
-                int hor = ((row == dim->top || row == dim->bot)
-                    && (col < dim->right && col > dim->left));
-                int content = (row > window->dim->top)
-                    && (row < window->dim->bot) && (col > window->dim->left)
-                    && (col < window->dim->right) && (window->contents)
-                    && (window->contents_ptr < strlen(window->contents));
+                int inside = (row >= dim->top) && (row <= dim->bot)
+                    && (col >= dim->left) && (col <= dim->right);
+                int ch = inside && window->contents &&
+                    (window->contents_ptr < strlen(window->contents));
 
-                if (vert) print_border_section(window->colour, VERTICAL);
-                else if (tl) {
-                    print_border_section(window->colour, TOP_LEFT_CORNER);
-                    if (window->title) {
-                        print_border_section(window->colour, window->title);
-                        col+= strlen(window->title);
+                if (inside && (window->z_index > max_z)) {
+                    max_z = window->z_index;
+                    if ((row > dim->top && row < dim->bot)
+                        && (col == dim->left || col == dim->right)) {
+                        set_content(&cur_content, window, window->style->vert);   
+                    } else if ((row == dim->top || row == dim->bot)
+                    && (col < dim->right && col > dim->left)) {
+                        set_content(&cur_content, window, window->style->horz);    
+                    }
+                    else if (row == dim->top && col == dim->left) {
+                        print_border_section(window->colour,
+                                             window->style->tl);
+                        if (window->title) {
+                            print_border_section(window->colour,
+                                                 window->title);
+                            col += strlen(window->title);
+                            printed_title = 1;
+                        }
+                    }
+                    else if (row == dim->top && col == dim->right)
+                        set_content(&cur_content, window, window->style->tr);
+                    else if (row == dim->bot && col == dim->left)
+                        set_content(&cur_content, window, window->style->bl);
+                    else if (row == dim->bot && col == dim->right)
+                        set_content(&cur_content, window, window->style->br);
+                    else if (inside) {
+                        cur_content = malloc(2);
+                        cur_content[0] =
+                            ch ? window->contents[window->contents_ptr++]
+                               : ' ';
+                        cur_content[1] = '\0';
                     }
                 }
-                else if (bl) print_border_section(window->colour,
-                                                  BOTTOM_LEFT_CORNER);
-                else if (br) print_border_section(window->colour,
-                                                  BOTTOM_RIGHT_CORNER);
-                else if (tr) print_border_section(window->colour,
-                                                  TOP_RIGHT_CORNER);
-                else if (hor) print_border_section(window->colour,
-                                                   HORIZONTAL);
-                else if (content)
-                    printf("%c", window->contents[window->contents_ptr++]);
-
-                is_vert |= vert;
-                is_tl |= tl;
-                is_tr |= tr;
-                is_br |= br;
-                is_bl |= bl;
-                is_hor |= hor;
-                is_content |= content;
             }
-            va_end(windows);
-            if (!(is_vert | is_tl | is_tr | is_bl | is_br | is_hor
-                | is_content)) printf(" ");
+            if (!printed_title) printf("%s", cur_content ? cur_content : " ");
         }
     }
     fflush(stdout);
@@ -204,59 +317,69 @@ int draw_windows (size_t num, ...) {
 }
 
 
-void draw_window (window_t* window) {
-    //size_t original_col = window->current_terminal_sz.ws_col;
-    //window->current_terminal_sz.ws_col +=(window->current_terminal_sz.ws_col & 1);
-    if (window->colour) printf("%s", window->colour);
-    for (size_t row = 0; row <= window->current_terminal_sz.ws_row; row++) {
-        if (row < window->dim->top) {
-            for (size_t col = 0; col < window->current_terminal_sz.ws_col; col++)
-                printf(" ");
-        }
-        else if (row == window->dim->top) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
-                if (col < window->dim->left) printf(" ");
-                else if (col == window->dim->left) {
-                    printf("%s", TOP_LEFT_CORNER);
-                    printf("%s", window->title);
-                    col += strlen(window->title);
-                }
-                else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
-                else if (col == window->dim->right) printf("%s", TOP_RIGHT_CORNER);
-                else if (col > window->dim->right) printf(" ");
-            }
-        }
-        else if (row > window->dim->top && row < window->dim->bot) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col; col++) {
-                if (col < window->dim->left) printf(" ");
-                else if (col == window->dim->left) printf("%s", VERTICAL);
-                else if (col > window->dim->left && col < window->dim->right - 1) {
-                   printf(" "); 
-                }
-                else if (col == window->dim->right) printf("%s", VERTICAL);
-                else if (col > window->dim->right) printf(" ");
-            }
-        }
-        else if (row == window->dim->bot) {
-            for (size_t col = 0; col <= window->current_terminal_sz.ws_col ; col++) {
-                if (col < window->dim->left) printf(" ");
-                else if (col == window->dim->left) printf("%s", BOTTOM_LEFT_CORNER);
-                else if (col > window->dim->left && col < window->dim->right - 1) printf("%s", HORIZONTAL);
-                else if (col == window->dim->right) printf("%s", BOTTOM_RIGHT_CORNER);
-                else if (col > window->dim->right) printf(" ");
-            }
-        }
-        else if (row > window->dim->bot) printf("\n");
-/*        
-else if (row > window->dim->bot) {
-            for (size_t col = 0; col < window->current_terminal_sz.ws_col-1;col++) printf(" ");
-        }*/
-     }
-    printf("%s", RESET_COLOUR);
-    fflush(stdout);
+int draw_all_windows () {
+    struct winsize current_terminal_sz;
+    ioctl(0, TIOCGWINSZ, &current_terminal_sz);
+    node_t* temp = flex_windows->next;
+    while (temp) {
+        temp->window->contents_ptr = 0;
+        temp = temp->next;
+    }
+    for (size_t row = 0; row <= current_terminal_sz.ws_row; row++) {
+        for (size_t col = 0; col < current_terminal_sz.ws_col; col++) {
+            int max_z = -1;
+            char* cur_content = NULL;
+            int printed_title = 0;
+            node_t* temp = flex_windows->next;
+            while (temp) {
+                window_t* window = temp->window; 
+                dim_t* dim = window->dim;
+                int inside = (row >= dim->top) && (row <= dim->bot)
+                    && (col >= dim->left) && (col <= dim->right);
+                int ch = inside && window->contents &&
+                    (window->contents_ptr < strlen(window->contents));
 
-    //window->current_terminal_sz.ws_col = original_col;
+                if (inside && (window->z_index > max_z)) {
+                    max_z = window->z_index;
+                    if ((row > dim->top && row < dim->bot)
+                        && (col == dim->left || col == dim->right)) {
+                        set_content(&cur_content, window, window->style->vert);   
+                    } else if ((row == dim->top || row == dim->bot)
+                    && (col < dim->right && col > dim->left)) {
+                        set_content(&cur_content, window, window->style->horz);    
+                    }
+                    else if (row == dim->top && col == dim->left) {
+                        print_border_section(window->colour,
+                                             window->style->tl);
+                        if (window->title) {
+                            print_border_section(window->colour,
+                                                 window->title);
+                            col += strlen(window->title);
+                            printed_title = 1;
+                        }
+                    }
+                    else if (row == dim->top && col == dim->right)
+                        set_content(&cur_content, window, window->style->tr);
+                    else if (row == dim->bot && col == dim->left)
+                        set_content(&cur_content, window, window->style->bl);
+                    else if (row == dim->bot && col == dim->right)
+                        set_content(&cur_content, window, window->style->br);
+                    else if (inside) {
+                        cur_content = malloc(2);
+                        cur_content[0] =
+                            ch ? window->contents[window->contents_ptr++]
+                               : ' ';
+                        cur_content[1] = '\0';
+                    }
+                }
+                temp = temp->next;
+            }
+            if (!printed_title) printf("%s", cur_content ? cur_content : " ");
+        }
+    }
+    fflush(stdout);
+    return 1;
 }
 
 
-
+void draw_window (window_t* window) { draw_windows(1, window); }
