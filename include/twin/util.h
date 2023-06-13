@@ -5,11 +5,6 @@
 *       Functions to start and stop the required terminal mode for drawing    *
 *       windows using twin.                                                   *
 *                                                                             *
-* PUBLIC FUNCTIONS :                                                          *
-*       void    twin_terminal_start_config ()                                 *
-*       void    twin_terminal_stop_config ()                                  *
-*       void    twin_stop ()                                                  *
-*                                                                             *
 * NOTES :                                                                     *
 *       These preprocessor directives are part of the twin library;           *
 *       See https://github.com/james-parky/twin for more detail.              *
