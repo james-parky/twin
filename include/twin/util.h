@@ -6,7 +6,6 @@
 *       windows using twin.                                                   *
 *                                                                             *
 * NOTES :                                                                     *
-*       These preprocessor directives are part of the twin library;           *
 *       See https://github.com/james-parky/twin for more detail.              *
 *                                                                             *
 *       Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>  *

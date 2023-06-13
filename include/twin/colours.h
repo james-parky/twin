@@ -6,7 +6,6 @@
 *       directives required for the twin library.                             *
 *                                                                             *
 * NOTES :                                                                     *
-*       These preprocessor directives are part of the twin library;           *
 *       See https://github.com/james-parky/twin for more detail.              *
 *                                                                             *
 *       Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>  *
@@ -22,7 +21,7 @@
 /******************************************************************************
 * TWIN_HORZ_XXX:                                                              *
 *       The compiler preprocessor directives for thin and bold, solid,        *
-*       dashed, dotted, and double stroke horizontal border characters.       *                                                    *
+*       dashed, dotted, and double stroke horizontal border characters.       *                                                    
 ******************************************************************************/
 #define TWIN_HORZ_THIN_SOLID "─"
 #define TWIN_HORZ_BOLD_SOLID "━"
@@ -35,7 +34,7 @@
 /******************************************************************************
 * TWIN_VERT_XXX:                                                              *
 *       The compiler preprocessor directives for thin and bold, solid,        *
-*       dashed, dotted, and double stroke vertical border characters.         *                                         *
+*       dashed, dotted, and double stroke vertical border characters.         *                                         
 ******************************************************************************/
 #define TWIN_VERT_THIN_SOLID "│"
 #define TWIN_VERT_BOLD_SOLID "┃"
