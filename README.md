@@ -1,23 +1,23 @@
 # twin
-```diff
-!████████╗██╗    ██╗██╗███╗   ██╗
-!╚══██╔══╝██║    ██║██║████╗  ██║
-!   ██║   ██║ █╗ ██║██║██╔██╗ ██║
-!   ██║   ██║███╗██║██║██║╚██╗██║
-!   ██║   ╚███╔███╔╝██║██║ ╚████║
-!   ╚═╝    ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝                                
-```
+
+<a align="center">
+    <img src="./assets/windows.png"/>
+</a>
 
 **IMPORTANT! THIS LIBRARY IS A WORK IN PROGRESS AND ANYTHING CAN CHANGE AT ANY MOMENT WITHOUT NOTICE!**
 
 A simple, lightweight terminal graphics library for drawing rectangular windows. Windows can have any colour, title, border stlye and contents. 
+
+<div align="center">
+    <img src="https://img.shields.io/badge/iTerm2-000000?style=for-the-badge&logo=iterm2&logoColor=white"/>
+    <img src="https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white"/>
+</div>
 
 ## A Small Example
 <p align="center">
     <img src="./assets/demo.png"/>
 </p>
 *This example is the minimum code required to generate the windows in the image above.*
-
 ```c
 int main () {
     twin_init();
