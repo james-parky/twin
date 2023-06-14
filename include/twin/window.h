@@ -107,25 +107,6 @@ struct _node_t {
 typedef struct _node_t _node_t;
 
 /******************************************************************************
-* _new_node:                                                                  *
-*       A private function for creating a new linked list node containing a   *
-*       twin window pointer. This function should NOT be used in user code.   *
-*                                                                             *
-* @param window: The window of the new linked list node.                      *
-******************************************************************************/
-_node_t* _new_node (twin_window_t* const window);
-
-/******************************************************************************
-* _insert_at_tail:                                                            *
-*       A private function for inserting a linked list node at a the tail of  *
-*       a linked list. This function should NOT be used in user code.         *
-*                                                                             *
-* @param tail: The node representing the tail of the linked list being used.  *
-* @param new: The node the be added to the linked list to become the tail.    *
-******************************************************************************/
-_node_t* _insert_at_tail (_node_t* tail, _node_t* const new);
-
-/******************************************************************************
 * twin_init:                                                                  *
 *       Creates and returns a new twin window with the given dimensions. Adds *
 *       the new window to the global linked list of active windows.           *
@@ -317,8 +298,8 @@ void twin_init();
 *       the linked list automatically and cannot be removed as of yet.        *
 ******************************************************************************/
 extern twin_window_t* flex_window_head;
-extern node_t* flex_windows;
-extern node_t* flex_windows_tail;
+extern _node_t* flex_windows;
+extern _node_t* flex_windows_tail;
 extern uint8_t window_count;
 
 #endif
