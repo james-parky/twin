@@ -1,15 +1,21 @@
 # twin
-
-<p align="center">
-    <img src="./assets/demo.png"/>
-</p>
+```diff
+!████████╗██╗    ██╗██╗███╗   ██╗
+!╚══██╔══╝██║    ██║██║████╗  ██║
+!   ██║   ██║ █╗ ██║██║██╔██╗ ██║
+!   ██║   ██║███╗██║██║██║╚██╗██║
+!   ██║   ╚███╔███╔╝██║██║ ╚████║
+!   ╚═╝    ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝                                
+```
 
 **IMPORTANT! THIS LIBRARY IS A WORK IN PROGRESS AND ANYTHING CAN CHANGE AT ANY MOMENT WITHOUT NOTICE!**
 
 A simple, lightweight terminal graphics library for drawing rectangular windows. Windows can have any colour, title, border stlye and contents. 
 
 ## A Small Example
-
+<p align="center">
+    <img src="./assets/demo.png"/>
+</p>
 *This example is the minimum code required to generate the windows in the image above.*
 
 ```c
