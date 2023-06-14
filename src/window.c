@@ -594,3 +594,26 @@ bool twin_draw_all_windows () {
 bool twin_draw_window (const twin_window_t* const window) {
     return twin_draw_windows(1, window);
 }
+
+/******************************************************************************
+* twin_free:                                                                  *
+*       Free a twin window and all its contenst.                              *
+******************************************************************************/
+void twin_free (twin_window_t* window) {
+    _node_t* temp = flex_windows->next;
+    _node_t* prev = flex_windows;
+
+    while (temp) {
+        if (temp->window == window) {
+            free(window->title);
+            free(window->contents);
+            free(window->dim);
+            free(window->colour);
+            free(window->style);
+            free(window);
+            prev->next = temp->next;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+}

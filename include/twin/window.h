@@ -292,6 +292,12 @@ bool twin_draw_window (const twin_window_t* const window);
 void twin_init();
 
 /******************************************************************************
+* twin_free:                                                                  *
+*       Free a twin window and all its contenst.                              *
+******************************************************************************/
+void twin_free(twin_window_t* window);
+
+/******************************************************************************
 * globals:                                                                    *
 *       Globals to represent a linked list of all active windows, and the     *
 *       current total window count. After a window is created it is added to  *
