@@ -16,6 +16,7 @@ A simple, lightweight terminal graphics library for drawing rectangular windows.
 <p align="center">
     <img src="./assets/demo.png"/>
 </p>
+
 *This example is the minimum code required to generate the windows in the image above.*
 
 ```c
@@ -50,3 +51,7 @@ int main () {
     return 0;
 }
 ```
+
+## Demos
+
+The source code for any demos shown here is located at [demos](./demos/). Each demo only contains the source .c file, and no header files are included, or included in the source.
