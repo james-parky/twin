@@ -17,6 +17,7 @@ A simple, lightweight terminal graphics library for drawing rectangular windows.
     <img src="./assets/demo.png"/>
 </p>
 *This example is the minimum code required to generate the windows in the image above.*
+
 ```c
 int main () {
     twin_init();
